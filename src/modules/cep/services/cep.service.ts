@@ -2,6 +2,8 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue, QueueEvents } from 'bullmq';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 import { CacheService } from '../../../shared/cache/cache.service';
 import { LoggerService } from '../../../shared/logger/logger.service';
 import { CepNotFoundException } from '../exceptions/cep-not-found.exception';
@@ -18,6 +20,8 @@ export class CepService implements OnModuleInit, OnModuleDestroy {
     @InjectQueue(CEP_QUEUE_NAME) private readonly cepQueue: Queue,
     private readonly logger: LoggerService,
     private readonly configService: ConfigService,
+    @InjectMetric('cep_request_total')
+    private readonly cepRequestTotalCounter: Counter<string>,
   ) {}
 
   onModuleInit() {
@@ -50,10 +54,12 @@ export class CepService implements OnModuleInit, OnModuleDestroy {
 
     if (cached !== null) {
       this.logger.log('cep_cache_hit', { cep });
+      this.cepRequestTotalCounter.inc({ status: 'hit' });
       return cached;
     }
 
     this.logger.log('cep_cache_miss', { cep });
+    this.cepRequestTotalCounter.inc({ status: 'miss' });
 
     const job = await this.cepQueue.add(
       CEP_RETRY_JOB,
@@ -74,6 +80,7 @@ export class CepService implements OnModuleInit, OnModuleDestroy {
       const result = await job.waitUntilFinished(this.queueEvents);
       return result as CepProviderResult;
     } catch (error) {
+      this.cepRequestTotalCounter.inc({ status: 'error' });
       const errorMessage =
         error instanceof Error ? error.message : String(error);
 

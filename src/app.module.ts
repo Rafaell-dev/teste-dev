@@ -5,6 +5,7 @@ import configuration, { validate } from './config/configuration';
 import { RedisModule } from './shared/redis/redis.module';
 import { LoggerModule } from './shared/logger/logger.module';
 import { RequestContextModule } from './shared/request-context/request-context.module';
+import { MetricsModule } from './shared/metrics/metrics.module';
 import { CepModule } from './modules/cep/cep.module';
 import { HealthModule } from './modules/health/health.module';
 

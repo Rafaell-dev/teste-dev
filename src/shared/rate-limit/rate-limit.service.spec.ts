@@ -31,6 +31,10 @@ describe('RateLimitService', () => {
             }),
           },
         },
+        {
+          provide: 'PROM_METRIC_CEP_RATE_LIMIT_TOTAL',
+          useValue: { inc: jest.fn() },
+        },
       ],
     }).compile();
 

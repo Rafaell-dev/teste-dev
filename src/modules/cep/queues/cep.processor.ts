@@ -8,6 +8,8 @@ import { CEP_QUEUE_NAME } from './cep.queue';
 import { ProviderSelectorService } from '../services/provider-selector.service';
 import { CepProviderResult } from '../providers/interfaces/cep-provider.interface';
 import { CepNotFoundException } from '../exceptions/cep-not-found.exception';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 
 export interface CepJobData {
   cep: string;
@@ -22,6 +24,8 @@ export class CepProcessor extends WorkerHost {
     private readonly cacheService: CacheService,
     private readonly logger: LoggerService,
     private readonly configService: ConfigService,
+    @InjectMetric('cep_fallback_total')
+    private readonly fallbackCounter: Counter<string>,
   ) {
     super();
     this.cacheTtl = this.configService.get<number>('cep.cacheTtl') ?? 86400;
@@ -50,6 +54,7 @@ export class CepProcessor extends WorkerHost {
       const provider = providers[i];
 
       if (i > 0) {
+        this.fallbackCounter.inc({ from: providers[i - 1].name, to: provider.name });
         this.logger.log('cep_job_provider_fallback', {
           from: providers[i - 1].name,
           to: provider.name,

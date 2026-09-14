@@ -14,6 +14,8 @@ import {
   CepProviderResult,
 } from '../interfaces/cep-provider.interface';
 import { BrasilApiResponseDto } from './dto/brasil-api-response.dto';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter, Histogram } from 'prom-client';
 
 @Injectable()
 export class BrasilApiProvider implements CepProvider {
@@ -26,6 +28,10 @@ export class BrasilApiProvider implements CepProvider {
     private readonly httpClient: HttpClientService,
     private readonly configService: ConfigService,
     private readonly logger: LoggerService,
+    @InjectMetric('cep_provider_request_total')
+    private readonly requestCounter: Counter<string>,
+    @InjectMetric('cep_provider_duration_seconds')
+    private readonly durationHistogram: Histogram<string>,
   ) {
     this.baseUrl =
       this.configService.get<string>('brasilApi.baseUrl') ??
@@ -43,6 +49,7 @@ export class BrasilApiProvider implements CepProvider {
     try {
       const response = await this.httpClient.get<unknown>(url, this.timeoutMs);
       const duration = Date.now() - startTime;
+      this.durationHistogram.observe({ provider: this.name }, duration / 1000);
 
       // BrasilAPI returns HTTP 404 for non-existent CEPs
       if (response.status === 404) {
@@ -52,6 +59,7 @@ export class BrasilApiProvider implements CepProvider {
           duration,
           reason: 'http_404',
         });
+        this.requestCounter.inc({ provider: this.name, result: 'not_found' });
         throw new CepNotFoundException(cep);
       }
 
@@ -62,6 +70,7 @@ export class BrasilApiProvider implements CepProvider {
           duration,
           status: response.status,
         });
+        this.requestCounter.inc({ provider: this.name, result: 'error' });
         throw new ProviderInvalidResponseException(
           this.name,
           `Unexpected HTTP status ${response.status}`,
@@ -79,6 +88,7 @@ export class BrasilApiProvider implements CepProvider {
           duration,
           reason,
         });
+        this.requestCounter.inc({ provider: this.name, result: 'error' });
         throw new ProviderInvalidResponseException(this.name, reason);
       }
 
@@ -87,6 +97,7 @@ export class BrasilApiProvider implements CepProvider {
         cep,
         duration,
       });
+      this.requestCounter.inc({ provider: this.name, result: 'success' });
 
       return {
         cep: dto.cep,

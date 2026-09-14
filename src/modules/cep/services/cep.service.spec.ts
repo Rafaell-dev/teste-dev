@@ -10,25 +10,39 @@ import { CEP_QUEUE_NAME } from '../queues/cep.queue';
 
 describe('CepService', () => {
   let service: CepService;
-  let cepQueue: { add: jest.Mock };
-  let cacheService: { get: jest.Mock };
+  let cepQueue: any;
+  let cacheService: any;
+  let mockQueue: any;
+  let mockCacheService: any;
+  let mockLoggerService: any;
 
   beforeEach(async () => {
     cepQueue = { add: jest.fn() };
-    cacheService = { get: jest.fn() };
+    cacheService = { get: jest.fn(), set: jest.fn() };
+    mockQueue = cepQueue;
+    mockCacheService = cacheService;
+    mockLoggerService = { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CepService,
-        { provide: CacheService, useValue: cacheService },
-        { provide: getQueueToken(CEP_QUEUE_NAME), useValue: cepQueue },
-        {
-          provide: LoggerService,
-          useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() },
-        },
+        { provide: CacheService, useValue: mockCacheService },
+        { provide: getQueueToken(CEP_QUEUE_NAME), useValue: mockQueue },
+        { provide: LoggerService, useValue: mockLoggerService },
         {
           provide: ConfigService,
-          useValue: { get: jest.fn().mockReturnValue(undefined) },
+          useValue: {
+            get: jest.fn().mockImplementation((key: string, defaultValue: any) => {
+              if (key === 'redis.host') return 'localhost';
+              if (key === 'redis.port') return 6379;
+              if (key === 'cep.cacheTtl') return 86400;
+              return defaultValue;
+            }),
+          },
+        },
+        {
+          provide: 'PROM_METRIC_CEP_REQUEST_TOTAL',
+          useValue: { inc: jest.fn() },
         },
       ],
     }).compile();

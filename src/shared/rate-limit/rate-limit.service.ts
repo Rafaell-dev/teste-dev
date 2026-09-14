@@ -6,6 +6,8 @@ import * as path from 'path';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { LoggerService } from '../logger/logger.service';
 import { RateLimitResult } from './rate-limit.interface';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 
 @Injectable()
 export class RateLimitService implements OnModuleInit {
@@ -19,6 +21,8 @@ export class RateLimitService implements OnModuleInit {
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly configService: ConfigService,
     private readonly logger: LoggerService,
+    @InjectMetric('cep_rate_limit_total')
+    private readonly rateLimitCounter: Counter<string>,
   ) {
     this.capacity = this.configService.get<number>('rateLimit.capacity', 100);
     
@@ -71,8 +75,10 @@ export class RateLimitService implements OnModuleInit {
 
       if (allowed) {
         this.logger.log('rate_limit_allowed', { identifier, remaining });
+        this.rateLimitCounter.inc({ result: 'allowed' });
       } else {
         this.logger.log('rate_limit_exceeded', { identifier, retryAfter });
+        this.rateLimitCounter.inc({ result: 'exceeded' });
       }
 
       return {

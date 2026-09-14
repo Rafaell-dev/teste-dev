@@ -31,6 +31,7 @@ describe('CepProcessor', () => {
   let processor: CepProcessor;
   let cacheService: jest.Mocked<CacheService>;
   let providerSelector: jest.Mocked<ProviderSelectorService>;
+  let loggerService: jest.Mocked<LoggerService>;
 
   beforeEach(async () => {
     cacheService = {
@@ -42,18 +43,26 @@ describe('CepProcessor', () => {
       getOrderedProviders: jest.fn(),
     } as unknown as jest.Mocked<ProviderSelectorService>;
 
+    loggerService = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<LoggerService>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CepProcessor,
-        { provide: CacheService, useValue: cacheService },
         { provide: ProviderSelectorService, useValue: providerSelector },
-        {
-          provide: LoggerService,
-          useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() },
-        },
+        { provide: CacheService, useValue: cacheService },
+        { provide: LoggerService, useValue: loggerService },
         {
           provide: ConfigService,
           useValue: { get: jest.fn().mockReturnValue(86400) },
+        },
+        {
+          provide: 'PROM_METRIC_CEP_FALLBACK_TOTAL',
+          useValue: { inc: jest.fn() },
         },
       ],
     }).compile();

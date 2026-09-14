@@ -37,8 +37,25 @@ describe('ViaCepProvider', () => {
       providers: [
         ViaCepProvider,
         { provide: HttpClientService, useValue: mockHttpClient },
-        { provide: ConfigService, useValue: mockConfig },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockImplementation((key: string) => {
+              if (key === 'viacep.baseUrl') return 'https://viacep.com.br';
+              if (key === 'cep.providerTimeoutMs') return 3000;
+              return undefined;
+            }),
+          },
+        },
         { provide: LoggerService, useValue: mockLogger },
+        {
+          provide: 'PROM_METRIC_CEP_PROVIDER_REQUEST_TOTAL',
+          useValue: { inc: jest.fn() },
+        },
+        {
+          provide: 'PROM_METRIC_CEP_PROVIDER_DURATION_SECONDS',
+          useValue: { observe: jest.fn() },
+        },
       ],
     }).compile();
 
