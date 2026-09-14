@@ -527,3 +527,30 @@ O `ProviderSelectorService` usa um contador em memória — simples, previsível
 ### Por que validar DTOs externos com class-validator?
 
 APIs externas não são confiáveis. Validar a resposta antes de normalizar garante que dados malformados falham explicitamente (`ProviderInvalidResponseException`) em vez de propagar silenciosamente dados incorretos para o cliente.
+
+## Rate Limiting (Token Bucket)
+
+A API implementa proteção contra abuso utilizando o algoritmo **Token Bucket**.
+
+### Por que Token Bucket e Redis?
+O Token Bucket permite rajadas controladas enquanto mantém uma taxa média constante de consumo. Utilizamos **Redis com Lua Script** para garantir a **atomicidade total** das operações em um ambiente distribuído (múltiplas instâncias da API).
+
+### Como funciona?
+1. **Bucket:** Cada IP possui um bucket com capacidade máxima (ex: 100 tokens).
+2. **Consumo:** Cada requisição consome 1 token.
+3. **Refill (Reposição):** A cada janela de tempo (ex: 1 minuto), o bucket enche de volta de forma constante e *lazy*.
+4. **Bloqueio (429):** Se os tokens acabarem, a API retorna HTTP 429 com o header `Retry-After` informando quantos segundos aguardar para um novo token.
+
+### Redis Indisponível (Fail-Open)
+O Rate Limiting possui estratégia *Fail-Open*. Se o Redis falhar temporariamente, a API prioriza a disponibilidade: a requisição é permitida e um log (`rate_limit_redis_error`) é gerado, não derrubando o negócio principal.
+
+### Headers de Rate Limit
+Cada requisição inclui informativos no header HTTP:
+- `X-RateLimit-Limit`: Capacidade do Bucket.
+- `X-RateLimit-Remaining`: Tokens sobrando no bucket.
+- `Retry-After`: Segundos para tentar novamente (só em 429).
+
+### Configurações (Variáveis de Ambiente)
+- `RATE_LIMIT_CAPACITY`: Tamanho do Bucket (Padrão: 100).
+- `RATE_LIMIT_REFILL_RATE`: Tokens adicionados por janela (Padrão: 100).
+- `RATE_LIMIT_WINDOW_SECONDS`: Janela de reposição em segundos (Padrão: 60).
