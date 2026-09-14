@@ -79,6 +79,13 @@ export default () => ({
       10,
     ),
   },
+  rateLimit: {
+    capacity: parseInt(process.env.RATE_LIMIT_CAPACITY || '100', 10),
+    refillRate: parseInt(process.env.RATE_LIMIT_REFILL_RATE || '100', 10),
+    windowSeconds: parseInt(process.env.RATE_LIMIT_WINDOW_SECONDS || '60', 10),
+    keyPrefix: process.env.RATE_LIMIT_KEY_PREFIX || 'ratelimit',
+    ttlSeconds: parseInt(process.env.RATE_LIMIT_TTL_SECONDS || '120', 10),
+  },
   viacep: {
     baseUrl: process.env.VIACEP_BASE_URL || 'https://viacep.com.br',
   },
