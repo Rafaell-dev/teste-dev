@@ -78,7 +78,7 @@ describe('CepProcessor', () => {
   });
 
   const makeJob = (cep: string): Job =>
-    ({ data: { cep }, id: '1', attemptsMade: 0 }) as any;
+    ({ data: { cep }, id: '1', attemptsMade: 0, log: jest.fn() }) as any;
 
   it('returns cached result if available', async () => {
     cacheService.get.mockResolvedValue(mockCepResult);

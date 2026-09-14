@@ -57,6 +57,7 @@ export class CepProcessor extends WorkerHost {
       const provider = providers[i];
 
       if (i > 0) {
+        await job.log(`Efetuando fallback de ${providers[i - 1].name} para ${provider.name}`);
         this.fallbackCounter.inc({
           from: providers[i - 1].name,
           to: provider.name,
@@ -79,6 +80,7 @@ export class CepProcessor extends WorkerHost {
           jobId: job.id,
           provider: provider.name,
         });
+        await job.log(`Provedor ${provider.name} respondeu com sucesso (Tentativa ${job.attemptsMade + 1}). Resposta: ${JSON.stringify(result)}`);
         return result;
       } catch (error) {
         if (error instanceof CepNotFoundException) {
@@ -91,6 +93,7 @@ export class CepProcessor extends WorkerHost {
             jobId: job.id,
             error: error instanceof Error ? error.message : String(error),
           });
+          await job.log(`Provedor ${provider.name} falhou (Tentativa ${job.attemptsMade + 1}). Erro: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
     }
