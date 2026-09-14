@@ -5,9 +5,10 @@ import { RATE_LIMIT_IDENTIFIER } from './rate-limit.interface';
 import { IpRateLimitIdentifier } from './rate-limit.identifier';
 import { RedisModule } from '../redis/redis.module';
 import { LoggerModule } from '../logger/logger.module';
+import { MetricsModule } from '../metrics/metrics.module';
 
 @Module({
-  imports: [RedisModule, LoggerModule],
+  imports: [RedisModule, LoggerModule, MetricsModule],
   providers: [
     RateLimitService,
     RateLimitGuard,
@@ -16,6 +17,6 @@ import { LoggerModule } from '../logger/logger.module';
       useClass: IpRateLimitIdentifier,
     },
   ],
-  exports: [RateLimitGuard],
+  exports: [RateLimitGuard, RateLimitService, RATE_LIMIT_IDENTIFIER],
 })
 export class RateLimitModule {}
