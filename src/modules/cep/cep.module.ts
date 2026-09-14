@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '../../shared/cache/cache.module';
+import { RateLimitModule } from '../../shared/rate-limit/rate-limit.module';
 import { HttpClientService } from '../../shared/http/http-client.service';
 import { CepController } from './controllers/cep.controller';
 import { CepService } from './services/cep.service';
@@ -19,7 +20,11 @@ import { CEP_QUEUE_NAME } from './queues/cep.queue';
  *   4. Done — CepService and ProviderSelectorService need no changes.
  */
 @Module({
-  imports: [CacheModule, BullModule.registerQueue({ name: CEP_QUEUE_NAME })],
+  imports: [
+    CacheModule,
+    RateLimitModule,
+    BullModule.registerQueue({ name: CEP_QUEUE_NAME }),
+  ],
   controllers: [CepController],
   providers: [
     HttpClientService,

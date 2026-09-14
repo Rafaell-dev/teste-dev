@@ -3,24 +3,29 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { CepController } from './cep.controller';
 import { CepService } from '../services/cep.service';
-import { CepExceptionFilter } from '../filters/cep-exception.filter';
 import { CepNotFoundException } from '../exceptions/cep-not-found.exception';
 import { ProvidersUnavailableException } from '../exceptions/providers-unavailable.exception';
-
-const mockCepService = {
-  getCep: jest.fn(),
-};
+import { CepExceptionFilter } from '../filters/cep-exception.filter';
+import { RateLimitGuard } from '../../../shared/rate-limit/rate-limit.guard';
 
 describe('CepController (integration)', () => {
   let app: INestApplication;
+  let mockCepService: { getCep: jest.Mock };
 
   beforeEach(async () => {
+    mockCepService = {
+      getCep: jest.fn(),
+    };
+
     jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CepController],
       providers: [{ provide: CepService, useValue: mockCepService }],
-    }).compile();
+    })
+      .overrideGuard(RateLimitGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = module.createNestApplication();
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import {
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -11,6 +11,7 @@ import {
 import { CepParamDto } from '../dto/cep-param.dto';
 import { CepResponseDto } from '../dto/cep-response.dto';
 import { CepService } from '../services/cep.service';
+import { RateLimitGuard } from '../../../shared/rate-limit/rate-limit.guard';
 
 @ApiTags('CEP')
 @Controller('cep')
@@ -18,6 +19,7 @@ export class CepController {
   constructor(private readonly cepService: CepService) {}
 
   @Get(':cep')
+  @UseGuards(RateLimitGuard)
   @ApiOperation({ summary: 'Consulta dados de um CEP' })
   @ApiParam({
     name: 'cep',
