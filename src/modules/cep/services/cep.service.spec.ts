@@ -21,7 +21,12 @@ describe('CepService', () => {
     cacheService = { get: jest.fn(), set: jest.fn() };
     mockQueue = cepQueue;
     mockCacheService = cacheService;
-    mockLoggerService = { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() };
+    mockLoggerService = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -32,12 +37,14 @@ describe('CepService', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn().mockImplementation((key: string, defaultValue: any) => {
-              if (key === 'redis.host') return 'localhost';
-              if (key === 'redis.port') return 6379;
-              if (key === 'cep.cacheTtl') return 86400;
-              return defaultValue;
-            }),
+            get: jest
+              .fn()
+              .mockImplementation((key: string, defaultValue: any) => {
+                if (key === 'redis.host') return 'localhost';
+                if (key === 'redis.port') return 6379;
+                if (key === 'cep.cacheTtl') return 86400;
+                return defaultValue;
+              }),
           },
         },
         {
@@ -48,7 +55,7 @@ describe('CepService', () => {
     }).compile();
 
     service = module.get<CepService>(CepService);
-    
+
     // Mock the queueEvents property which is normally created in onModuleInit
     (service as any).queueEvents = {};
   });
@@ -107,11 +114,15 @@ describe('CepService', () => {
     it('throws ProvidersUnavailableException when worker throws other errors', async () => {
       cacheService.get.mockResolvedValue(null);
       const mockJob = {
-        waitUntilFinished: jest.fn().mockRejectedValue(new Error('PROVIDERS_UNAVAILABLE')),
+        waitUntilFinished: jest
+          .fn()
+          .mockRejectedValue(new Error('PROVIDERS_UNAVAILABLE')),
       };
       cepQueue.add.mockResolvedValue(mockJob);
 
-      await expect(service.getCep(rawCep)).rejects.toThrow(ProvidersUnavailableException);
+      await expect(service.getCep(rawCep)).rejects.toThrow(
+        ProvidersUnavailableException,
+      );
     });
   });
 });

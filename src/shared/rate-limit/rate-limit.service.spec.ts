@@ -7,11 +7,21 @@ import { LoggerService } from '../logger/logger.service';
 describe('RateLimitService', () => {
   let service: RateLimitService;
   let redis: { evalsha: jest.Mock; script: jest.Mock };
-  let logger: { log: jest.Mock; error: jest.Mock; warn: jest.Mock; debug: jest.Mock };
+  let logger: {
+    log: jest.Mock;
+    error: jest.Mock;
+    warn: jest.Mock;
+    debug: jest.Mock;
+  };
 
   beforeEach(async () => {
     redis = { evalsha: jest.fn(), script: jest.fn() };
-    logger = { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() };
+    logger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -76,7 +86,7 @@ describe('RateLimitService', () => {
         '100', // capacity
         expect.any(String), // refillRate in ms
         expect.any(String), // now
-        '120' // ttl
+        '120', // ttl
       );
     });
 
@@ -101,7 +111,10 @@ describe('RateLimitService', () => {
         allowed: true,
         remaining: 1,
       });
-      expect(logger.error).toHaveBeenCalledWith('rate_limit_redis_error', expect.any(Object));
+      expect(logger.error).toHaveBeenCalledWith(
+        'rate_limit_redis_error',
+        expect.any(Object),
+      );
     });
   });
 });

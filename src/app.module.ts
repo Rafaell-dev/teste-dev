@@ -27,6 +27,7 @@ import { HealthModule } from './modules/health/health.module';
     RedisModule,
     LoggerModule,
     RequestContextModule,
+    MetricsModule,
 
     /**
      * BullMQ uses the same Redis instance as the cache.

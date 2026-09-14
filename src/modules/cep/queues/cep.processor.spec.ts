@@ -4,7 +4,10 @@ import { CepProcessor } from './cep.processor';
 import { ProviderSelectorService } from '../services/provider-selector.service';
 import { CacheService } from '../../../shared/cache/cache.service';
 import { LoggerService } from '../../../shared/logger/logger.service';
-import { CepProvider, CepProviderResult } from '../providers/interfaces/cep-provider.interface';
+import {
+  CepProvider,
+  CepProviderResult,
+} from '../providers/interfaces/cep-provider.interface';
 import { CepNotFoundException } from '../exceptions/cep-not-found.exception';
 import { Job } from 'bullmq';
 
@@ -75,7 +78,7 @@ describe('CepProcessor', () => {
   });
 
   const makeJob = (cep: string): Job =>
-    ({ data: { cep }, id: '1', attemptsMade: 0 } as any);
+    ({ data: { cep }, id: '1', attemptsMade: 0 }) as any;
 
   it('returns cached result if available', async () => {
     cacheService.get.mockResolvedValue(mockCepResult);
@@ -92,14 +95,21 @@ describe('CepProcessor', () => {
     const result = await processor.process(makeJob('55200000'));
     expect(result).toEqual(mockCepResult);
     expect(provider.getCep).toHaveBeenCalledWith('55200000');
-    expect(cacheService.set).toHaveBeenCalledWith('cep:55200000', mockCepResult, 86400);
+    expect(cacheService.set).toHaveBeenCalledWith(
+      'cep:55200000',
+      mockCepResult,
+      86400,
+    );
   });
 
   it('falls back to second provider on failure', async () => {
     cacheService.get.mockResolvedValue(null);
     const provider1 = makeProvider('viacep', undefined, new Error('timeout'));
     const provider2 = makeProvider('brasilapi', mockCepResult);
-    providerSelector.getOrderedProviders.mockReturnValue([provider1, provider2]);
+    providerSelector.getOrderedProviders.mockReturnValue([
+      provider1,
+      provider2,
+    ]);
 
     const result = await processor.process(makeJob('55200000'));
     expect(result).toEqual(mockCepResult);
@@ -109,19 +119,41 @@ describe('CepProcessor', () => {
 
   it('throws NOT_FOUND when all providers return CepNotFoundException', async () => {
     cacheService.get.mockResolvedValue(null);
-    const provider1 = makeProvider('viacep', undefined, new CepNotFoundException('1'));
-    const provider2 = makeProvider('brasilapi', undefined, new CepNotFoundException('1'));
-    providerSelector.getOrderedProviders.mockReturnValue([provider1, provider2]);
+    const provider1 = makeProvider(
+      'viacep',
+      undefined,
+      new CepNotFoundException('1'),
+    );
+    const provider2 = makeProvider(
+      'brasilapi',
+      undefined,
+      new CepNotFoundException('1'),
+    );
+    providerSelector.getOrderedProviders.mockReturnValue([
+      provider1,
+      provider2,
+    ]);
 
-    await expect(processor.process(makeJob('55200000'))).rejects.toThrow('NOT_FOUND:55200000');
+    await expect(processor.process(makeJob('55200000'))).rejects.toThrow(
+      'NOT_FOUND:55200000',
+    );
   });
 
   it('throws PROVIDERS_UNAVAILABLE when all providers fail technically', async () => {
     cacheService.get.mockResolvedValue(null);
     const provider1 = makeProvider('viacep', undefined, new Error('timeout'));
-    const provider2 = makeProvider('brasilapi', undefined, new Error('timeout'));
-    providerSelector.getOrderedProviders.mockReturnValue([provider1, provider2]);
+    const provider2 = makeProvider(
+      'brasilapi',
+      undefined,
+      new Error('timeout'),
+    );
+    providerSelector.getOrderedProviders.mockReturnValue([
+      provider1,
+      provider2,
+    ]);
 
-    await expect(processor.process(makeJob('55200000'))).rejects.toThrow('PROVIDERS_UNAVAILABLE');
+    await expect(processor.process(makeJob('55200000'))).rejects.toThrow(
+      'PROVIDERS_UNAVAILABLE',
+    );
   });
 });

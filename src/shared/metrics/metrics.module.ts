@@ -1,5 +1,9 @@
 import { Global, Module } from '@nestjs/common';
-import { makeCounterProvider, makeHistogramProvider, PrometheusModule } from '@willsoto/nestjs-prometheus';
+import {
+  makeCounterProvider,
+  makeHistogramProvider,
+  PrometheusModule,
+} from '@willsoto/nestjs-prometheus';
 
 @Global()
 @Module({

@@ -1,4 +1,3 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
@@ -34,7 +33,11 @@ export class CepProcessor extends WorkerHost {
   async process(job: Job<CepJobData>): Promise<CepProviderResult> {
     const { cep } = job.data;
 
-    this.logger.log('cep_job_started', { cep, jobId: job.id, attempt: job.attemptsMade + 1 });
+    this.logger.log('cep_job_started', {
+      cep,
+      jobId: job.id,
+      attempt: job.attemptsMade + 1,
+    });
 
     const cacheKey = `cep:${cep}`;
     const cached = await this.cacheService.get<CepProviderResult>(cacheKey);
@@ -54,7 +57,10 @@ export class CepProcessor extends WorkerHost {
       const provider = providers[i];
 
       if (i > 0) {
-        this.fallbackCounter.inc({ from: providers[i - 1].name, to: provider.name });
+        this.fallbackCounter.inc({
+          from: providers[i - 1].name,
+          to: provider.name,
+        });
         this.logger.log('cep_job_provider_fallback', {
           from: providers[i - 1].name,
           to: provider.name,
@@ -67,8 +73,12 @@ export class CepProcessor extends WorkerHost {
       try {
         const result = await provider.getCep(cep);
         await this.cacheService.set(cacheKey, result, this.cacheTtl);
-        
-        this.logger.log('cep_job_success', { cep, jobId: job.id, provider: provider.name });
+
+        this.logger.log('cep_job_success', {
+          cep,
+          jobId: job.id,
+          provider: provider.name,
+        });
         return result;
       } catch (error) {
         if (error instanceof CepNotFoundException) {

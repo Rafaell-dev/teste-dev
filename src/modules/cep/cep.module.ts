@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '../../shared/cache/cache.module';
 import { RateLimitModule } from '../../shared/rate-limit/rate-limit.module';
+import { MetricsModule } from '../../shared/metrics/metrics.module';
 import { HttpClientService } from '../../shared/http/http-client.service';
 import { CepController } from './controllers/cep.controller';
 import { CepService } from './services/cep.service';
@@ -23,6 +24,7 @@ import { CEP_QUEUE_NAME } from './queues/cep.queue';
   imports: [
     CacheModule,
     RateLimitModule,
+    MetricsModule,
     BullModule.registerQueue({ name: CEP_QUEUE_NAME }),
   ],
   controllers: [CepController],

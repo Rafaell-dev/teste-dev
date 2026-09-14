@@ -17,14 +17,6 @@ const mockLogger = {
   debug: jest.fn(),
 };
 
-const mockConfig = {
-  get: jest.fn((key: string) => {
-    if (key === 'brasilApi.baseUrl') return 'https://brasilapi.com.br';
-    if (key === 'cep.providerTimeoutMs') return 3000;
-    return undefined;
-  }),
-};
-
 const mockHttpClient = { get: jest.fn() };
 
 describe('BrasilApiProvider', () => {
@@ -41,7 +33,8 @@ describe('BrasilApiProvider', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn().mockImplementation((key: string) => {
-              if (key === 'brasilApi.baseUrl') return 'https://brasilapi.com.br';
+              if (key === 'brasilApi.baseUrl')
+                return 'https://brasilapi.com.br';
               if (key === 'cep.providerTimeoutMs') return 3000;
               return undefined;
             }),

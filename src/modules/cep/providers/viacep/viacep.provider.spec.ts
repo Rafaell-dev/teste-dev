@@ -17,14 +17,6 @@ const mockLogger = {
   debug: jest.fn(),
 };
 
-const mockConfig = {
-  get: jest.fn((key: string) => {
-    if (key === 'viacep.baseUrl') return 'https://viacep.com.br';
-    if (key === 'cep.providerTimeoutMs') return 3000;
-    return undefined;
-  }),
-};
-
 const mockHttpClient = { get: jest.fn() };
 
 describe('ViaCepProvider', () => {

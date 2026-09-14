@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { ExecutionContext, HttpException } from '@nestjs/common';
 import { RateLimitGuard } from './rate-limit.guard';
 import { RateLimitService } from './rate-limit.service';
-import { RATE_LIMIT_IDENTIFIER, RateLimitIdentifier } from './rate-limit.interface';
+import { RATE_LIMIT_IDENTIFIER } from './rate-limit.interface';
 
 describe('RateLimitGuard', () => {
   let guard: RateLimitGuard;
@@ -38,7 +38,10 @@ describe('RateLimitGuard', () => {
     const setHeader = jest.fn();
     return {
       switchToHttp: () => ({
-        getRequest: () => ({ headers: {}, socket: { remoteAddress: '127.0.0.1' } }),
+        getRequest: () => ({
+          headers: {},
+          socket: { remoteAddress: '127.0.0.1' },
+        }),
         getResponse: () => ({ setHeader }),
       }),
     } as any;
@@ -55,8 +58,14 @@ describe('RateLimitGuard', () => {
     const result = await guard.canActivate(context);
 
     expect(result).toBe(true);
-    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', 100);
-    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith('X-RateLimit-Remaining', 99);
+    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith(
+      'X-RateLimit-Limit',
+      100,
+    );
+    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith(
+      'X-RateLimit-Remaining',
+      99,
+    );
   });
 
   it('should throw HttpException 429 and set Retry-After if blocked', async () => {
@@ -70,10 +79,21 @@ describe('RateLimitGuard', () => {
     const context = createMockContext();
 
     await expect(guard.canActivate(context)).rejects.toThrow(HttpException);
-    await expect(guard.canActivate(context)).rejects.toThrow('Too many requests');
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      'Too many requests',
+    );
 
-    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', 100);
-    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith('X-RateLimit-Remaining', 0);
-    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith('Retry-After', 5);
+    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith(
+      'X-RateLimit-Limit',
+      100,
+    );
+    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith(
+      'X-RateLimit-Remaining',
+      0,
+    );
+    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith(
+      'Retry-After',
+      5,
+    );
   });
 });
