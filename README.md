@@ -559,6 +559,9 @@ Cada requisição inclui informativos no header HTTP:
 
 A API expõe nativamente métricas no padrão **Prometheus** através do endpoint `GET /metrics`. Isso permite integração direta com ferramentas de visualização, como o Grafana (incluso no `docker-compose.yml`).
 
+<img width="1105" height="609" alt="image" src="https://github.com/user-attachments/assets/c5a8a351-c6c0-460d-8e78-c3ad9d537ec3" />
+
+
 ### Endpoint
 - `GET /metrics`
 
