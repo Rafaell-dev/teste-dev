@@ -555,9 +555,9 @@ Cada requisição inclui informativos no header HTTP:
 - `RATE_LIMIT_REFILL_RATE`: Tokens adicionados por janela (Padrão: 100).
 - `RATE_LIMIT_WINDOW_SECONDS`: Janela de reposição em segundos (Padrão: 60).
 
-## Métricas e Observabilidade (Prometheus)
+## Métricas e Observabilidade (Prometheus + Grafana)
 
-A API expõe nativamente métricas no padrão **Prometheus** através do endpoint `GET /metrics`. Isso permite integração direta com ferramentas como Grafana, Datadog ou New Relic.
+A API expõe nativamente métricas no padrão **Prometheus** através do endpoint `GET /metrics`. Isso permite integração direta com ferramentas de visualização, como o Grafana (incluso no `docker-compose.yml`).
 
 ### Endpoint
 - `GET /metrics`
@@ -566,8 +566,8 @@ A API expõe nativamente métricas no padrão **Prometheus** através do endpoin
 
 | Métrica | Tipo | Descrição | Labels |
 |---|---|---|---|
-| `cep_request_total` | Counter | Total de buscas de CEP realizadas pela API | `status="hit\|miss\|error"` |
-| `cep_provider_request_total` | Counter | Total de chamadas a provedores externos | `provider="viacep\|brasilapi"`, `result="success\|not_found\|error"` |
+| `cep_request_total` | Counter | Total de buscas de CEP realizadas pela API | `status="hit\|miss\|invalid\|not_found\|error"` |
+| `cep_provider_request_total` | Counter | Total de chamadas a provedores externos | `provider="viacep\|brasilapi"`, `result="success\|not_found\|invalid\|error"` |
 | `cep_provider_duration_seconds`| Histogram| Latência de comunicação com os provedores | `provider="viacep\|brasilapi"` |
 | `cep_fallback_total` | Counter | Quantas vezes o sistema ativou o fallback | `from="viacep"`, `to="brasilapi"` |
 | `cep_rate_limit_total` | Counter | Requisições interceptadas pelo Token Bucket | `result="allowed\|exceeded"` |
