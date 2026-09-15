@@ -51,13 +51,19 @@ export class BrasilApiProvider implements CepProvider {
       const duration = Date.now() - startTime;
       this.durationHistogram.observe({ provider: this.name }, duration / 1000);
 
-      // BrasilAPI returns HTTP 404 for non-existent CEPs
-      if (response.status === 404) {
+      const rawData = response.data as Record<string, unknown>;
+
+      // BrasilAPI returns a specific error object when the CEP is invalid or not found
+      // across all its internal services. This can come as 404 or 500.
+      if (
+        response.status === 404 ||
+        (rawData?.name === 'CepPromiseError' && rawData?.type === 'service_error')
+      ) {
         this.logger.log('cep_provider_not_found', {
           provider: this.name,
           cep,
           duration,
-          reason: 'http_404',
+          reason: response.status === 404 ? 'http_404' : 'cep_promise_error',
         });
         this.requestCounter.inc({ provider: this.name, result: 'not_found' });
         throw new CepNotFoundException(cep);
@@ -79,7 +85,7 @@ export class BrasilApiProvider implements CepProvider {
 
       let dto: BrasilApiResponseDto;
       try {
-        dto = await validateDto(BrasilApiResponseDto, response.data);
+        dto = await validateDto(BrasilApiResponseDto, rawData);
       } catch (err) {
         const reason = err instanceof Error ? err.message : String(err);
         this.logger.error('cep_provider_invalid_response', {
