@@ -14,6 +14,7 @@ import {
   CepProviderResult,
 } from '../interfaces/cep-provider.interface';
 import { BrasilApiResponseDto } from './dto/brasil-api-response.dto';
+import { CepInvalidException } from '../../exceptions/cep-invalid.exception';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { Counter, Histogram } from 'prom-client';
 
@@ -59,6 +60,19 @@ export class BrasilApiProvider implements CepProvider {
         response.status === 404 ||
         (rawData?.name === 'CepPromiseError' && rawData?.type === 'service_error')
       ) {
+        const errors = rawData.errors as Array<{ message?: string }>;
+        const isInvalid = errors?.some((e) => e.message === 'CEP INVÁLIDO');
+
+        if (isInvalid) {
+          this.logger.log('cep_provider_invalid', {
+            provider: this.name,
+            cep,
+            duration,
+          });
+          this.requestCounter.inc({ provider: this.name, result: 'error' });
+          throw new CepInvalidException('CEP INVÁLIDO');
+        }
+
         this.logger.log('cep_provider_not_found', {
           provider: this.name,
           cep,

@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue, QueueEvents } from 'bullmq';
@@ -83,6 +83,11 @@ export class CepService implements OnModuleInit, OnModuleDestroy {
       this.cepRequestTotalCounter.inc({ status: 'error' });
       const errorMessage =
         error instanceof Error ? error.message : String(error);
+
+      if (errorMessage.includes('INVALID_CEP:')) {
+        const msg = errorMessage.split('INVALID_CEP:')[1];
+        throw new BadRequestException(msg);
+      }
 
       if (errorMessage.includes('NOT_FOUND:')) {
         throw new CepNotFoundException(cep);

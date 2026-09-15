@@ -7,6 +7,8 @@ import { CEP_QUEUE_NAME } from './cep.queue';
 import { ProviderSelectorService } from '../services/provider-selector.service';
 import { CepProviderResult } from '../providers/interfaces/cep-provider.interface';
 import { CepNotFoundException } from '../exceptions/cep-not-found.exception';
+import { CepInvalidException } from '../exceptions/cep-invalid.exception';
+import { CepProvider } from '../providers/interfaces/cep-provider.interface';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { Counter } from 'prom-client';
 
@@ -83,7 +85,10 @@ export class CepProcessor extends WorkerHost {
         await job.log(`Provedor ${provider.name} respondeu com sucesso (Tentativa ${job.attemptsMade + 1}). Resposta: ${JSON.stringify(result)}`);
         return result;
       } catch (error) {
-        if (error instanceof CepNotFoundException) {
+        if (error instanceof CepInvalidException) {
+          await job.log(`Provedor ${provider.name} detectou CEP inválido. Abortando fallback.`);
+          throw new Error(`INVALID_CEP:${error.message}`);
+        } else if (error instanceof CepNotFoundException) {
           notFoundCount++;
         } else {
           technicalErrorCount++;
