@@ -8,7 +8,6 @@ import { ProviderSelectorService } from '../services/provider-selector.service';
 import { CepProviderResult } from '../providers/interfaces/cep-provider.interface';
 import { CepNotFoundException } from '../exceptions/cep-not-found.exception';
 import { CepInvalidException } from '../exceptions/cep-invalid.exception';
-import { CepProvider } from '../providers/interfaces/cep-provider.interface';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { Counter } from 'prom-client';
 
@@ -59,7 +58,9 @@ export class CepProcessor extends WorkerHost {
       const provider = providers[i];
 
       if (i > 0) {
-        await job.log(`Efetuando fallback de ${providers[i - 1].name} para ${provider.name}`);
+        await job.log(
+          `Efetuando fallback de ${providers[i - 1].name} para ${provider.name}`,
+        );
         this.fallbackCounter.inc({
           from: providers[i - 1].name,
           to: provider.name,
@@ -82,11 +83,15 @@ export class CepProcessor extends WorkerHost {
           jobId: job.id,
           provider: provider.name,
         });
-        await job.log(`Provedor ${provider.name} respondeu com sucesso (Tentativa ${job.attemptsMade + 1}). Resposta: ${JSON.stringify(result)}`);
+        await job.log(
+          `Provedor ${provider.name} respondeu com sucesso (Tentativa ${job.attemptsMade + 1}). Resposta: ${JSON.stringify(result)}`,
+        );
         return result;
       } catch (error) {
         if (error instanceof CepInvalidException) {
-          await job.log(`Provedor ${provider.name} detectou CEP inválido. Abortando fallback.`);
+          await job.log(
+            `Provedor ${provider.name} detectou CEP inválido. Abortando fallback.`,
+          );
           throw new Error(`INVALID_CEP:${error.message}`);
         } else if (error instanceof CepNotFoundException) {
           notFoundCount++;
@@ -98,7 +103,9 @@ export class CepProcessor extends WorkerHost {
             jobId: job.id,
             error: error instanceof Error ? error.message : String(error),
           });
-          await job.log(`Provedor ${provider.name} falhou (Tentativa ${job.attemptsMade + 1}). Erro: ${error instanceof Error ? error.message : String(error)}`);
+          await job.log(
+            `Provedor ${provider.name} falhou (Tentativa ${job.attemptsMade + 1}). Erro: ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
       }
     }

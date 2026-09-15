@@ -58,7 +58,8 @@ export class BrasilApiProvider implements CepProvider {
       // across all its internal services. This can come as 404 or 500.
       if (
         response.status === 404 ||
-        (rawData?.name === 'CepPromiseError' && rawData?.type === 'service_error')
+        (rawData?.name === 'CepPromiseError' &&
+          rawData?.type === 'service_error')
       ) {
         const errors = rawData.errors as Array<{ message?: string }>;
         const isInvalid = errors?.some((e) => e.message === 'CEP INVÁLIDO');
