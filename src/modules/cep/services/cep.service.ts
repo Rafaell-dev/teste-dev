@@ -80,19 +80,21 @@ export class CepService implements OnModuleInit, OnModuleDestroy {
       const result = await job.waitUntilFinished(this.queueEvents);
       return result as CepProviderResult;
     } catch (error) {
-      this.cepRequestTotalCounter.inc({ status: 'error' });
       const errorMessage =
         error instanceof Error ? error.message : String(error);
 
       if (errorMessage.includes('INVALID_CEP:')) {
+        this.cepRequestTotalCounter.inc({ status: 'invalid' });
         const msg = errorMessage.split('INVALID_CEP:')[1];
         throw new BadRequestException(msg);
       }
 
       if (errorMessage.includes('NOT_FOUND:')) {
+        this.cepRequestTotalCounter.inc({ status: 'not_found' });
         throw new CepNotFoundException(cep);
       }
 
+      this.cepRequestTotalCounter.inc({ status: 'error' });
       this.logger.error('cep_rpc_failed', { cep, error: errorMessage });
       throw new ProvidersUnavailableException();
     }

@@ -69,7 +69,7 @@ export class BrasilApiProvider implements CepProvider {
             cep,
             duration,
           });
-          this.requestCounter.inc({ provider: this.name, result: 'error' });
+          this.requestCounter.inc({ provider: this.name, result: 'invalid' });
           throw new CepInvalidException('CEP INVÁLIDO');
         }
 
