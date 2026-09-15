@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'teste-dev-api'
+    static_configs:
+      # O Docker for Windows/Mac reconhece "host.docker.internal" para bater na porta do host.
+      # Se você estiver no Linux nativo, talvez precise mudar para a IP real da máquina, ou usar network_mode: host.
+      - targets: ['host.docker.internal:3001']
