@@ -1,4 +1,21 @@
 services:
+  api:
+    build: .
+    container_name: cep-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CEP_CACHE_TTL=86400
+      - CEP_PROVIDER_TIMEOUT_MS=3000
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     container_name: cep-api-redis
