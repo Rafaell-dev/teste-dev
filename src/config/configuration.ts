@@ -71,6 +71,7 @@ export default () => ({
   redis: {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD || undefined,
   },
   cep: {
     cacheTtl: parseInt(process.env.CEP_CACHE_TTL || '86400', 10),

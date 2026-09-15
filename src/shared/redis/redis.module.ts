@@ -14,6 +14,7 @@ export const REDIS_CLIENT = 'REDIS_CLIENT';
         return new Redis({
           host: configService.get<string>('redis.host'),
           port: configService.get<number>('redis.port'),
+          password: configService.get<string>('redis.password'),
           /**
            * lazyConnect prevents startup failure if Redis is temporarily unavailable.
            * The first command will establish the connection.
