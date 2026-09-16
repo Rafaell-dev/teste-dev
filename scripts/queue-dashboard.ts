@@ -12,6 +12,7 @@ async function bootstrap() {
   const redisOptions = {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD || undefined,
   };
 
   const cepQueue = new Queue(CEP_QUEUE_NAME, { connection: redisOptions });
